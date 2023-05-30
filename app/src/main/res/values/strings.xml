@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">StoryApp</string>
+    <string name="story_app">Story App</string>
+    <string name="name_hint">Name</string>
+    <string name="password_hint">Password</string>
+    <string name="email_hint">Email</string>
+    <string name="buttonRegister">Register</string>
+    <string name="sign_in_text">Already have an account?</string>
+    <string name="sign_in_clickable">Sign In.</string>
+    <string name="item_name">John Doe</string>
+    <string name="preview_image">Preview Image</string>
+    <string name="preview_image_view">Preview Image</string>
+    <string name="button_galery">Button Galery</string>
+    <string name="button_camera">Button Camera</string>
+    <string name="description_label">Description</string>
+    <string name="button_add">Add Story</string>
+    <string name="detail_photo">detail image</string>
+    <string name="password_login">Password</string>
+    <string name="email_login">Email</string>
+    <string name="login_button">Login</string>
+    <string name="sign_up">Sign Up.</string>
+    <string name="don_t_have_an_account">Don\'t have an account?</string>
+    <string name="add_story_button">Add Story</string>
+</resources>
