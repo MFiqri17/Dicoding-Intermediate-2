@@ -5,18 +5,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.storyapp.R
-import com.project.storyapp.data.remote.response.Story
 import com.project.storyapp.databinding.ActivityMainBinding
+import com.project.storyapp.ui.adapter.LoadingStateAdapter
 import com.project.storyapp.ui.adapter.StoryAdapter
 import com.project.storyapp.ui.viewModel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
@@ -35,28 +33,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.getToken().collect { token ->
                 if (token !== null) {
                     val jwt = "Bearer $token"
-                    showLoading()
-                    viewModel.getListStories(
-                        1,
-                        20,
-                        0,
-                        jwt
-                    ).collectLatest { result ->
-                        hideLoading()
-                        if (result.isSuccess) {
-                            val response = result.getOrThrow()
-                            setStoryListData(response.listStory)
-                        } else {
-                            showToast("Failed: ${result.exceptionOrNull()}")
-                        }
-                    }
+                    setStoryListData(jwt)
                 } else {
                     navigateToLoginActivity()
                 }
             }
         }
 
-        binding.btnAddStory.setOnClickListener{
+        binding.btnAddStory.setOnClickListener {
             navigateToAddStoryActivity()
         }
     }
@@ -71,24 +55,35 @@ class MainActivity : AppCompatActivity() {
             R.id.action_logout -> {
                 logOutHandler()
             }
+            R.id.action_map -> {
+                navigateToMapsActivity()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
 
-    private fun setStoryListData(storyList: List<Story>?) {
+    private fun setStoryListData(token: String) {
         val layoutManager = LinearLayoutManager(this)
         binding.rvStory.layoutManager = layoutManager
 
-        val adapter = StoryAdapter(storyList ?: emptyList()) {story ->
+        val adapter = StoryAdapter { story ->
             navigateToDetailActivity(story.id)
         }
-        binding.rvStory.adapter = adapter
+        binding.rvStory.adapter = adapter.withLoadStateFooter(footer = LoadingStateAdapter {
+            adapter.retry()
+        })
+
+        viewModel.getListStories(
+            token
+        ).observe(this) {
+            adapter.submitData(lifecycle, it)
+        }
     }
 
     private fun logOutHandler() {
         lifecycleScope.launch {
-            viewModel.logOut().collect {result ->
+            viewModel.logOut().collect { result ->
                 if (result.isSuccess) {
                     showToast("Log Out Success")
                     navigateToLoginActivity()
@@ -99,13 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showLoading() {
-        binding.progressBar.visibility = View.VISIBLE
-    }
 
-    private fun hideLoading() {
-        binding.progressBar.visibility = View.GONE
-    }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
@@ -125,6 +114,11 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToLoginActivity() {
         val intent = Intent(this, LoginActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
+
+    private fun navigateToMapsActivity() {
+        val intent = Intent(this, MapsActivity::class.java)
         startActivity(intent)
     }
 }

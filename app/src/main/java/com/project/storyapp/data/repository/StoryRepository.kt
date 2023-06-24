@@ -1,8 +1,15 @@
 package com.project.storyapp.data.repository
 
+import androidx.lifecycle.LiveData
+import androidx.paging.Pager
+
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.liveData
 import com.project.storyapp.data.remote.api.ApiService
 import com.project.storyapp.data.remote.response.AddStoryResponse
 import com.project.storyapp.data.remote.response.StoriesResponse
+import com.project.storyapp.data.remote.response.Story
 import com.project.storyapp.data.remote.response.StoryDetailResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -27,7 +34,7 @@ class StoryRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    fun getListStories(
+    fun getListStoriesWithoutPaging(
         page: Int?,
         size: Int?,
         location: Int = 0,
@@ -39,6 +46,19 @@ class StoryRepository @Inject constructor(private val apiService: ApiService) {
         }.catch {
             emit(Result.failure(it))
         }
+    }
+
+    fun getListStories(
+        authHeader: String
+    ): LiveData<PagingData<Story>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 15
+            ),
+            pagingSourceFactory = {
+                StoryPagingSource(apiService, authHeader)
+            }
+        ).liveData
     }
 
     fun getStoryDetail(
